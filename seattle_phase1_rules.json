@@ -1,0 +1,201 @@
+{
+  "engine": {
+    "version": "0.1",
+    "scoring": { "start": 100 },
+    "labels": [
+      { "label": "UNLIKELY", "if": { "any_blocker": true } },
+      { "label": "UNLIKELY", "if": { "score_lt": 40 } },
+      { "label": "POSSIBLE", "if": { "score_lt": 75 } },
+      { "label": "LIKELY", "if": { "score_gte": 75 } }
+    ]
+  },
+  "rules": [
+    {
+      "id": "SEATTLE-INFO-ADU-PERMIT-NEEDED",
+      "severity": "info",
+      "score_impact": 0,
+      "when": { "always": true },
+      "message": "In Seattle, ADUs are only legal when established through the permit process (this tool is a quick screening, not a permit determination).",
+      "next_steps": ["Review Seattle SDCI ADU guidance and confirm site specifics with SDCI or a qualified professional."]
+    },
+
+    {
+      "id": "NR-DADU-MIN-LOT-3200",
+      "severity": "blocker",
+      "score_impact": -60,
+      "when": {
+        "all": [
+          { "field": "zone_family", "op": "eq", "value": "NR" },
+          { "field": "adu_plan", "op": "in", "value": ["DADU", "BOTH"] },
+          { "field": "lot_size_sqft", "op": "lt", "value": 3200 }
+        ]
+      },
+      "message": "For a detached ADU (DADU) in Neighborhood Residential zones, Seattle lists a 3,200 sq ft minimum lot size threshold."
+    },
+    {
+      "id": "NR-DADU-LOT-UNKNOWN",
+      "severity": "warning",
+      "score_impact": -15,
+      "when": {
+        "all": [
+          { "field": "zone_family", "op": "eq", "value": "NR" },
+          { "field": "adu_plan", "op": "in", "value": ["DADU", "BOTH"] },
+          { "field": "lot_size_sqft", "op": "is_null", "value": true }
+        ]
+      },
+      "message": "Lot size is unknown. Detached ADU eligibility can depend on lot size thresholds in some zones—verify your lot size before assuming feasibility.",
+      "next_steps": ["Find lot size from your property records or a recent survey/assessor data."]
+    },
+
+    {
+      "id": "AADU-SIZE-LIMIT-NR-1000",
+      "severity": "warning",
+      "score_impact": -20,
+      "when": {
+        "all": [
+          { "field": "zone_family", "op": "eq", "value": "NR" },
+          { "field": "adu_plan", "op": "in", "value": ["AADU", "BOTH"] },
+          { "field": "proposed_adu_sqft", "op": "gt", "value": 1000 }
+        ]
+      },
+      "message": "Seattle lists an attached ADU (AADU) size limit of 1,000 sq ft in Neighborhood Residential zones. If your plan exceeds that, expect extra redesign or limits."
+    },
+    {
+      "id": "DADU-SIZE-LIMIT-NR-1000",
+      "severity": "warning",
+      "score_impact": -20,
+      "when": {
+        "all": [
+          { "field": "zone_family", "op": "eq", "value": "NR" },
+          { "field": "adu_plan", "op": "in", "value": ["DADU", "BOTH"] },
+          { "field": "proposed_adu_sqft", "op": "gt", "value": 1000 }
+        ]
+      },
+      "message": "Seattle lists a detached ADU (DADU) size limit of 1,000 sq ft (gross floor area) in Neighborhood Residential zones. If your plan exceeds that, expect redesign or limits."
+    },
+    {
+      "id": "LOWRISE-ADU-SIZE-650",
+      "severity": "warning",
+      "score_impact": -20,
+      "when": {
+        "all": [
+          { "field": "zone_family", "op": "eq", "value": "LOWRISE" },
+          { "field": "proposed_adu_sqft", "op": "gt", "value": 650 }
+        ]
+      },
+      "message": "Seattle lists a 650 sq ft ADU size limit in Lowrise zones in some cases. If your plan exceeds that, expect redesign or limits."
+    },
+    {
+      "id": "SIZE-UNKNOWN",
+      "severity": "warning",
+      "score_impact": -10,
+      "when": { "field": "proposed_adu_sqft", "op": "is_null", "value": true },
+      "message": "Your proposed ADU size is unknown. Size limits can affect feasibility—confirm an approximate size to improve this screening."
+    },
+
+    {
+      "id": "NR-TWO-ADUS-CRITERIA",
+      "severity": "warning",
+      "score_impact": -25,
+      "when": {
+        "all": [
+          { "field": "zone_detail", "op": "in", "value": ["NR1", "NR2", "NR3"] },
+          { "field": "adding_second_adu", "op": "eq", "value": true },
+          { "field": "second_adu_criteria", "op": "in", "value": ["NONE", "UNKNOWN"] }
+        ]
+      },
+      "message": "Seattle notes that in NR1/NR2/NR3, constructing up to two ADUs may require the second unit to meet specific criteria (e.g., green building or affordability). If you’re planning two ADUs, confirm the criteria early."
+    },
+    {
+      "id": "RSL-LOWRISE-ONE-ADU-NOTE",
+      "severity": "info",
+      "score_impact": 0,
+      "when": {
+        "all": [
+          { "field": "zone_family", "op": "in", "value": ["RSL", "LOWRISE"] },
+          { "field": "adding_second_adu", "op": "eq", "value": true }
+        ]
+      },
+      "message": "Seattle notes that some zones (e.g., RSL and some Lowrise contexts) may be more limited in how many ADUs are permitted per primary unit—confirm with SDCI if you’re planning more than one."
+    },
+
+    {
+      "id": "PARKING-REMOVAL-WARNING",
+      "severity": "warning",
+      "score_impact": -20,
+      "when": { "field": "removing_required_parking", "op": "eq", "value": "YES" },
+      "message": "Seattle notes parking is not required for ADUs, but you generally cannot remove existing required off-street parking unless it’s replaced elsewhere in an allowed location. This can affect design."
+    },
+    {
+      "id": "PARKING-UNKNOWN",
+      "severity": "warning",
+      "score_impact": -10,
+      "when": { "field": "removing_required_parking", "op": "eq", "value": "UNKNOWN" },
+      "message": "It’s unclear whether your ADU plan impacts existing required parking. That’s a common design pitfall—confirm early."
+    },
+
+    {
+      "id": "OWNER-OCCUPANCY-INFO",
+      "severity": "info",
+      "score_impact": 0,
+      "when": { "always": true },
+      "message": "Seattle states the property owner is not required to live on the property where an ADU is located (confirm any updates and related rental rules separately)."
+    },
+    {
+      "id": "SEWER-CAPACITY-CHARGE",
+      "severity": "info",
+      "score_impact": 0,
+      "when": { "always": true },
+      "message": "Seattle notes ADU permits are reported for sewer treatment capacity charges, and applicants must acknowledge those charges during permitting."
+    },
+    {
+      "id": "SEWER-ACK-NO",
+      "severity": "warning",
+      "score_impact": -10,
+      "when": { "field": "ack_sewer_capacity_charge", "op": "eq", "value": "NO" },
+      "message": "You indicated you’re not expecting potential sewer capacity charges. Seattle notes these may apply—budget and confirm during permitting."
+    },
+
+    {
+      "id": "ZONE-UNKNOWN",
+      "severity": "warning",
+      "score_impact": -20,
+      "when": { "field": "zone_family", "op": "eq", "value": "UNKNOWN" },
+      "message": "Zoning is unknown. Seattle ADU eligibility and limits vary by zone—confirm your zoning before relying on this screening.",
+      "next_steps": ["Look up your zoning in Seattle’s tools or on your property records."]
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+Suggested form fields (what the rules expect)
+
+zone_family = "NR" | "RSL" | "LOWRISE" | "OTHER" | "UNKNOWN"
+
+zone_detail = "NR1" | "NR2" | "NR3" | "RSL" | "LOWRISE" | "UNKNOWN" (optional detail)
+
+adu_plan = "AADU" | "DADU" | "BOTH" | "UNSURE"
+
+lot_size_sqft = number | null
+
+proposed_adu_sqft = number | null
+
+existing_adus = 0 | 1 | 2 | null
+
+adding_second_adu = true | false | null
+
+second_adu_criteria = "GREEN" | "AFFORDABLE" | "UNKNOWN" | "NONE" | null
+
+removing_required_parking = "YES" | "NO" | "UNKNOWN"
+
+ack_sewer_capacity_charge = "YES" | "NO" | "UNKNOWN"
