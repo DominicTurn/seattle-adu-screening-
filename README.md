@@ -160,7 +160,7 @@ With the virtual environment activated:
 
 ```bash
 # Upgrade pip to latest version
-pip install --upgrade pip
+python -m pip install --upgrade pip
 
 # Install all dependencies from requirements.txt
 pip install -r requirements.txt
@@ -170,7 +170,7 @@ pip install -r requirements.txt
 
 ```bash
 # Upgrade pip
-pip install --upgrade pip
+python -m pip install --upgrade pip
 
 # Install Flask
 pip install flask
