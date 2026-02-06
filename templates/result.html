@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Results</title>
+    <style>
+        body {
+            font-family: -apple-system, sans-serif;
+            padding: 20px;
+            background: #f4f6f8;
+            color: #333;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .LIKELY {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .POSSIBLE {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .UNLIKELY {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        h3 {
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            margin-top: 30px;
+            color: #555;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 30px;
+            text-decoration: none;
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .disclaimer {
+            font-size: 13px;
+            color: #777;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: justify;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="header {{ results.decision }}">
+            <small style="font-weight: bold; opacity: 0.8;">ASSESSMENT RESULT</small>
+            <h1>{{ results.decision }}</h1>
+        </div>
+
+        <h3>Analysis & Reasons</h3>
+        {% if results.reasons %}
+        <ul>
+            {% for reason in results.reasons %}
+            <li>{{ reason }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No specific blockers or warnings triggered based on the provided inputs.</p>
+        {% endif %}
+
+        {% if results.next_steps %}
+        <h3>Recommended Next Steps</h3>
+        <ul>
+            {% for step in results.next_steps %}
+            <li>{{ step }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <a href="/" class="btn-back">Start Over</a>
+
+        <div class="disclaimer">
+            <strong>Disclaimer:</strong> This tool is an informational MVP only. It is not a permit determination or
+            legal advice. Zoning codes are complex and subject to site-specific conditions not captured here. Always
+            verify project feasibility with the Seattle Department of Construction and Inspections (SDCI).
+        </div>
+    </div>
+</body>
+
+</html>

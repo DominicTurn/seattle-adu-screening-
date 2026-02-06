@@ -1,4 +1,4 @@
-{
+﻿{
   "engine": {
     "version": "0.1",
     "scoring": { "start": 100 },
@@ -168,34 +168,3 @@
 }
 
 
-
-
-
-
-
-
-
-
-
-
-Suggested form fields (what the rules expect)
-
-zone_family = "NR" | "RSL" | "LOWRISE" | "OTHER" | "UNKNOWN"
-
-zone_detail = "NR1" | "NR2" | "NR3" | "RSL" | "LOWRISE" | "UNKNOWN" (optional detail)
-
-adu_plan = "AADU" | "DADU" | "BOTH" | "UNSURE"
-
-lot_size_sqft = number | null
-
-proposed_adu_sqft = number | null
-
-existing_adus = 0 | 1 | 2 | null
-
-adding_second_adu = true | false | null
-
-second_adu_criteria = "GREEN" | "AFFORDABLE" | "UNKNOWN" | "NONE" | null
-
-removing_required_parking = "YES" | "NO" | "UNKNOWN"
-
-ack_sewer_capacity_charge = "YES" | "NO" | "UNKNOWN"

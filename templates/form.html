@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seattle ADU Readiness Check</title>
+    <style>
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #f4f6f8;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            margin-top: 15px;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        select.is-invalid,
+        input.is-invalid {
+            border-color: #e74c3c;
+        }
+
+        select.is-valid,
+        input.is-valid {
+            border-color: #27ae60;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        .server-error {
+            background: #fee;
+            border: 1px solid #e74c3c;
+            color: #c0392b;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #0052a3;
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Seattle ADU Permit Readiness Checker</h1>
+
+        {% if error %}
+        <div class="server-error">{{ error }}</div>
+        {% endif %}
+
+        <form action="/evaluate" method="POST" id="aduForm" novalidate>
+
+            <div class="section">
+                <h3>1. Zoning & Property</h3>
+                
+                <label>Zoning Family <span style="color:#e74c3c">*</span></label>
+                <select name="zone_family" id="zone_family" required>
+                    <option value="" disabled selected>-- Select --</option>
+                    <option value="NR">Neighborhood Residential (NR)</option>
+                    <option value="RSL">Residential Small Lot (RSL)</option>
+                    <option value="LOWRISE">Lowrise</option>
+                    <option value="OTHER">Other</option>
+                    <option value="UNKNOWN">Unknown</option>
+                </select>
+                <div class="error-message" id="zone_family_error">Please select a valid zone family.</div>
+
+                <label>Zoning Detail (Optional)</label>
+                <select name="zone_detail" id="zone_detail">
+                    <option value="" selected>-- Optional --</option>
+                    <option value="NR1">NR1</option>
+                    <option value="NR2">NR2</option>
+                    <option value="NR3">NR3</option>
+                    <option value="RSL">RSL</option>
+                    <option value="LOWRISE">Lowrise</option>
+                    <option value="UNKNOWN">Unknown</option>
+                </select>
+
+                <label>Lot Size (sq ft)</label>
+                <input type="number" name="lot_size_sqft" id="lot_size_sqft" 
+                       placeholder="e.g. 5000" min="0" max="1000000" step="1">
+                <div class="hint">Optional. Must be between 0 and 1,000,000 sq ft.</div>
+                <div class="error-message" id="lot_size_sqft_error">Lot size must be a number between 0 and 1,000,000.</div>
+            </div>
+
+            <div class="section">
+                <h3>2. Project Plan</h3>
+                
+                <label>ADU Plan Type <span style="color:#e74c3c">*</span></label>
+                <select name="adu_plan" id="adu_plan" required>
+                    <option value="" disabled selected>-- Select --</option>
+                    <option value="AADU">Attached (AADU)</option>
+                    <option value="DADU">Detached (DADU)</option>
+                    <option value="BOTH">Both</option>
+                    <option value="UNSURE">Unsure</option>
+                </select>
+                <div class="error-message" id="adu_plan_error">Please select a valid ADU plan type.</div>
+
+                <label>Proposed ADU Size (sq ft)</label>
+                <input type="number" name="proposed_adu_sqft" id="proposed_adu_sqft" 
+                       placeholder="e.g. 800" min="0" max="5000" step="1">
+                <div class="hint">Optional. Must be between 0 and 5,000 sq ft.</div>
+                <div class="error-message" id="proposed_adu_sqft_error">Proposed size must be between 0 and 5,000 sq ft.</div>
+
+                <label>Existing ADUs on Property</label>
+                <select name="existing_adus" id="existing_adus">
+                    <option value="" selected>-- Unknown --</option>
+                    <option value="0">0 (None)</option>
+                    <option value="1">1 (One existing)</option>
+                    <option value="2">2 (Two existing)</option>
+                </select>
+
+                <label>Are you adding a SECOND ADU?</label>
+                <select name="adding_second_adu" id="adding_second_adu">
+                    <option value="" selected>-- Unknown --</option>
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+
+                <label>Criteria for 2nd ADU</label>
+                <select name="second_adu_criteria" id="second_adu_criteria">
+                    <option value="" selected>-- Not applicable --</option>
+                    <option value="GREEN">Green Building Standard</option>
+                    <option value="AFFORDABLE">Affordable Housing</option>
+                    <option value="UNKNOWN">Unknown</option>
+                    <option value="NONE">None</option>
+                </select>
+            </div>
+
+            <div class="section">
+                <h3>3. Constraints</h3>
+                
+                <label>Removing Required Parking? <span style="color:#e74c3c">*</span></label>
+                <select name="removing_required_parking" id="removing_required_parking" required>
+                    <option value="" disabled selected>-- Select --</option>
+                    <option value="YES">Yes</option>
+                    <option value="NO">No</option>
+                    <option value="UNKNOWN">Unknown</option>
+                </select>
+                <div class="error-message" id="removing_required_parking_error">Please select an option.</div>
+
+                <label>Acknowledge Sewer Capacity Charge? <span style="color:#e74c3c">*</span></label>
+                <select name="ack_sewer_capacity_charge" id="ack_sewer_capacity_charge" required>
+                    <option value="" disabled selected>-- Select --</option>
+                    <option value="YES">Yes</option>
+                    <option value="NO">No</option>
+                    <option value="UNKNOWN">Unknown</option>
+                </select>
+                <div class="error-message" id="ack_sewer_capacity_charge_error">Please select an option.</div>
+            </div>
+
+            <button type="submit" id="submitBtn">Check Readiness</button>
+        </form>
+    </div>
+
+    <script>
+        // Client-side validation
+        const form = document.getElementById('aduForm');
+        const submitBtn = document.getElementById('submitBtn');
+        let formSubmitted = false;
+
+        // Validation rules
+        const VALID_VALUES = {
+            zone_family: ['NR', 'RSL', 'LOWRISE', 'OTHER', 'UNKNOWN'],
+            zone_detail: ['', 'NR1', 'NR2', 'NR3', 'RSL', 'LOWRISE', 'UNKNOWN'],
+            adu_plan: ['AADU', 'DADU', 'BOTH', 'UNSURE'],
+            existing_adus: ['', '0', '1', '2'],
+            adding_second_adu: ['', 'true', 'false'],
+            second_adu_criteria: ['', 'GREEN', 'AFFORDABLE', 'UNKNOWN', 'NONE'],
+            removing_required_parking: ['YES', 'NO', 'UNKNOWN'],
+            ack_sewer_capacity_charge: ['YES', 'NO', 'UNKNOWN']
+        };
+
+        const NUMERIC_LIMITS = {
+            lot_size_sqft: { min: 0, max: 1000000 },
+            proposed_adu_sqft: { min: 0, max: 5000 }
+        };
+
+        function showError(fieldId, show) {
+            const errorEl = document.getElementById(fieldId + '_error');
+            if (errorEl) {
+                errorEl.classList.toggle('visible', show);
+            }
+        }
+
+        function applyValidationClass(field, isValid) {
+            if (!formSubmitted) return;
+            
+            field.classList.remove('is-valid', 'is-invalid');
+            if (field.value !== '' || field.required) {
+                field.classList.add(isValid ? 'is-valid' : 'is-invalid');
+            }
+        }
+
+        function validateSelect(field) {
+            const value = field.value;
+            const validValues = VALID_VALUES[field.name];
+            if (validValues) {
+                const isValid = validValues.includes(value);
+                if (field.required && value === '') {
+                    showError(field.name, formSubmitted);
+                    applyValidationClass(field, false);
+                    return false;
+                }
+                showError(field.name, formSubmitted && !isValid);
+                applyValidationClass(field, isValid);
+                return isValid;
+            }
+            return true;
+        }
+
+        function validateNumeric(field) {
+            const value = field.value;
+            const limits = NUMERIC_LIMITS[field.name];
+            
+            if (value === '' || value === null) {
+                showError(field.name, false);
+                applyValidationClass(field, true);
+                return true; // Optional field
+            }
+            
+            const numVal = parseFloat(value);
+            if (isNaN(numVal) || numVal < limits.min || numVal > limits.max || !Number.isInteger(numVal)) {
+                showError(field.name, formSubmitted);
+                applyValidationClass(field, false);
+                return false;
+            }
+            
+            showError(field.name, false);
+            applyValidationClass(field, true);
+            return true;
+        }
+
+        function validateForm() {
+            let isValid = true;
+
+            // Validate selects
+            document.querySelectorAll('select').forEach(select => {
+                if (!validateSelect(select)) {
+                    isValid = false;
+                }
+            });
+
+            // Validate numeric fields
+            Object.keys(NUMERIC_LIMITS).forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                if (field && !validateNumeric(field)) {
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        }
+
+        // Real-time validation on change (only after first submit)
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', () => {
+                if (formSubmitted) {
+                    validateSelect(select);
+                }
+            });
+        });
+
+        Object.keys(NUMERIC_LIMITS).forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            if (field) {
+                field.addEventListener('input', () => {
+                    if (formSubmitted) {
+                        validateNumeric(field);
+                    }
+                });
+                field.addEventListener('blur', () => {
+                    if (formSubmitted) {
+                        validateNumeric(field);
+                    }
+                });
+            }
+        });
+
+        // Prevent invalid characters in number fields
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('keydown', (e) => {
+                // Allow: backspace, delete, tab, escape, enter, decimal point
+                if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+                    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                    (e.keyCode >= 35 && e.keyCode <= 40) ||
+                    ((e.keyCode === 65 || e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 88) && (e.ctrlKey || e.metaKey))) {
+                    return;
+                }
+                // Ensure it's a number
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Form submission validation
+        form.addEventListener('submit', (e) => {
+            formSubmitted = true;
+            if (!validateForm()) {
+                e.preventDefault();
+                alert('Please correct the errors before submitting.');
+            }
+        });
+    </script>
+</body>
+
+</html>
