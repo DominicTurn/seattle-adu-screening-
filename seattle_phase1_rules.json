@@ -1,30 +1,52 @@
 {
   "engine": {
-    "version": "0.3",
+    "version": "0.4",
     "scoring": { "start": 100 },
-
     "labels": [
       { "label": "UNLIKELY", "if": { "any_blocker": true } },
-      { "label": "UNLIKELY", "if": { "score_lt": 40 } },
-      { "label": "POSSIBLE", "if": { "score_lt": 75 } },
-      { "label": "LIKELY", "if": { "score_gte": 75 } }
+      { "label": "UNLIKELY", "if": { "score_lt": 45 } },
+      { "label": "POSSIBLE", "if": { "score_lt": 78 } },
+      { "label": "LIKELY", "if": { "score_gte": 78 } }
     ]
   },
-
   "rules": [
-
     {
       "id": "INFO_ADU_PERMIT_REQUIRED",
       "severity": "info",
       "score_impact": 0,
       "when": { "always": true },
-      "message": "Seattle requires permits to establish ADUs. This tool provides a preliminary readiness screening only."
+      "message": "Seattle requires permits to establish ADUs. This tool provides a preliminary readiness screening only.",
+      "next_steps": [
+        "If this looks feasible, confirm details with Seattle SDCI guidance or a qualified ADU designer."
+      ]
     },
 
     {
-      "id": "NR_DADU_MIN_LOT",
+      "id": "ZONING_UNKNOWN",
+      "severity": "warning",
+      "score_impact": -18,
+      "when": { "field": "zoning", "op": "eq", "value": "IDK" },
+      "message": "Zoning was not confirmed. Seattle ADU rules vary significantly by zoning district.",
+      "next_steps": [
+        "Look up zoning in Seattle’s mapping portal (search your address → zoning layer)."
+      ]
+    },
+
+    {
+      "id": "LOT_UNKNOWN_WARNING",
+      "severity": "warning",
+      "score_impact": -12,
+      "when": { "field": "lot_size_range", "op": "eq", "value": "UNKNOWN" },
+      "message": "Lot size was not provided. Some ADU pathways depend on minimum lot area thresholds.",
+      "next_steps": [
+        "Find lot size from King County assessor records, a survey, or existing site plan."
+      ]
+    },
+
+    {
+      "id": "NR_DADU_MIN_LOT_BLOCKER",
       "severity": "blocker",
-      "score_impact": -60,
+      "score_impact": -65,
       "when": {
         "all": [
           { "field": "zoning", "op": "eq", "value": "NR" },
@@ -36,76 +58,133 @@
     },
 
     {
-      "id": "LOT_UNKNOWN_WARNING",
-      "severity": "warning",
-      "score_impact": -10,
+      "id": "NR_DADU_LOT_OK_SIGNAL",
+      "severity": "info",
+      "score_impact": 6,
       "when": {
-        "field": "lot_size_range",
-        "op": "eq",
-        "value": "UNKNOWN"
+        "all": [
+          { "field": "zoning", "op": "eq", "value": "NR" },
+          { "field": "adu_type", "op": "in", "value": ["DETACHED_NEW", "CONVERT_EXISTING"] },
+          { "field": "lot_size_range", "op": "in", "value": ["3200_5000", "OVER_5000"] }
+        ]
       },
-      "message": "Lot size was not provided. Some ADU pathways depend on minimum lot area thresholds."
+      "message": "Your lot size range is above the common 3,200 sq ft threshold that can matter for detached ADU paths in Neighborhood Residential zones."
+    },
+
+    {
+      "id": "ATTACHED_ADU_SIGNAL",
+      "severity": "info",
+      "score_impact": 8,
+      "when": { "field": "adu_type", "op": "eq", "value": "ATTACHED" },
+      "message": "Attached ADUs often avoid some detached-specific constraints, which can make the pathway simpler depending on site conditions."
+    },
+
+    {
+      "id": "DETACHED_NEW_SIGNAL",
+      "severity": "info",
+      "score_impact": 3,
+      "when": { "field": "adu_type", "op": "eq", "value": "DETACHED_NEW" },
+      "message": "Detached new builds commonly require more site planning (setbacks, height, utilities), but can be a clean path if the lot supports it.",
+      "next_steps": [
+        "If pursuing a detached new build, confirm setbacks/coverage and utility tie-ins early."
+      ]
     },
 
     {
       "id": "CONVERSION_WITHOUT_STRUCTURE",
       "severity": "warning",
-      "score_impact": -20,
+      "score_impact": -22,
       "when": {
         "all": [
           { "field": "adu_type", "op": "eq", "value": "CONVERT_EXISTING" },
           { "field": "detached_structure", "op": "eq", "value": "NO" }
         ]
       },
-      "message": "You selected converting an existing structure, but indicated no detached structure like a garage or cottage."
+      "message": "You selected converting an existing structure, but indicated no detached structure like a garage or cottage.",
+      "next_steps": [
+        "If you do not have a detached structure, consider an attached ADU or a detached new build instead."
+      ]
     },
 
     {
-      "id": "ZONING_UNKNOWN",
-      "severity": "warning",
-      "score_impact": -15,
-      "when": {
-        "field": "zoning",
-        "op": "eq",
-        "value": "IDK"
-      },
-      "message": "Zoning was not confirmed. Seattle ADU rules vary significantly by zoning district."
-    },
-
-    {
-      "id": "ATTACHED_ADU_FLEXIBLE",
+      "id": "CONVERSION_WITH_STRUCTURE_SIGNAL",
       "severity": "info",
       "score_impact": 5,
       "when": {
-        "field": "adu_type",
-        "op": "eq",
-        "value": "ATTACHED"
+        "all": [
+          { "field": "adu_type", "op": "eq", "value": "CONVERT_EXISTING" },
+          { "field": "detached_structure", "op": "eq", "value": "YES" }
+        ]
       },
-      "message": "Attached ADUs often face fewer lot size constraints compared with detached units."
+      "message": "A detached-structure conversion can sometimes shorten the path, but feasibility still depends on code compliance and site constraints."
     },
 
     {
-      "id": "SECONDARY_INCOME_MOTIVATION",
+      "id": "PRO_HELP_YES_SIGNAL",
       "severity": "info",
-      "score_impact": 0,
-      "when": {
-        "field": "motivation",
-        "op": "eq",
-        "value": "RENTAL_INCOME"
-      },
-      "message": "Many Seattle homeowners build ADUs for rental income. Check local regulations for rental licensing requirements."
+      "score_impact": 6,
+      "when": { "field": "pro_help", "op": "eq", "value": "YES" },
+      "message": "Because you’ve already talked to a professional, you’re likely ahead on feasibility checks and next-step clarity."
+    },
+
+    {
+      "id": "PRO_HELP_PLANNING_SIGNAL",
+      "severity": "info",
+      "score_impact": 3,
+      "when": { "field": "pro_help", "op": "eq", "value": "PLANNING" },
+      "message": "Planning to talk to a professional soon is a strong next step. A short consult can prevent expensive missteps."
     },
 
     {
       "id": "PRO_HELP_RECOMMENDED",
+      "severity": "warning",
+      "score_impact": -6,
+      "when": { "field": "pro_help", "op": "eq", "value": "NO" },
+      "message": "If you have not yet consulted an architect or contractor, doing so early can clarify feasibility and costs.",
+      "next_steps": [
+        "Book a short consult with an ADU designer/architect to validate the path before design spend."
+      ]
+    },
+
+    {
+      "id": "COST_CONCERN",
       "severity": "info",
       "score_impact": 0,
-      "when": {
-        "field": "pro_help",
-        "op": "eq",
-        "value": "NO"
-      },
-      "message": "If you have not yet consulted an architect or contractor, doing so early can clarify feasibility and costs."
+      "when": { "field": "biggest_concern", "op": "eq", "value": "COST" },
+      "message": "Because cost is your main concern, prioritize a quick feasibility check and a rough budget range before committing to design.",
+      "next_steps": [
+        "Get a rough cost range from 1–2 local builders/designers before spending on full plans."
+      ]
+    },
+
+    {
+      "id": "ALLOWED_CONCERN",
+      "severity": "info",
+      "score_impact": 0,
+      "when": { "field": "biggest_concern", "op": "eq", "value": "ALLOWED" },
+      "message": "Because eligibility is your main concern, confirm zoning and basic site constraints first (lot size range, conversion structure, and ADU type).",
+      "next_steps": [
+        "Confirm zoning + lot size + intended ADU type before estimating design or costs."
+      ]
+    },
+
+    {
+      "id": "TIMELINE_CONCERN",
+      "severity": "info",
+      "score_impact": 0,
+      "when": { "field": "biggest_concern", "op": "eq", "value": "TIMELINE" },
+      "message": "Because timeline is your main concern, start by validating feasibility quickly and lining up a designer/contractor early.",
+      "next_steps": [
+        "To reduce delays: confirm feasibility first, then line up design + contractor availability early."
+      ]
+    },
+
+    {
+      "id": "WHERE_TO_START_CONCERN",
+      "severity": "info",
+      "score_impact": 0,
+      "when": { "field": "biggest_concern", "op": "eq", "value": "WHERE_TO_START" },
+      "message": "Because you’re unsure where to start, your first 3 moves are: confirm zoning, confirm lot size range, then pick an ADU type based on conversion feasibility."
     },
 
     {
@@ -115,6 +194,5 @@
       "when": { "always": true },
       "message": "Seattle currently does not require owner occupancy for ADU properties, though this can change with policy updates."
     }
-
   ]
 }
