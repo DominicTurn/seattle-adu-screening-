@@ -1,1 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seattle ADU Permit Readiness Report — $19</title>
+
+  <style>
+    :root{
+      --bg1:#0b1220;
+      --bg2:#0f1b2d;
+      --card:#0f172a;
+      --card2:#111c33;
+      --text:#eaf0ff;
+      --muted:#b7c3e1;
+      --line:#243556;
+
+      --primary:#7aa2ff;
+      --primary2:#9bb8ff;
+
+      --ok:#34d399;
+      --warn:#fb7185;
+
+      --input:#0b1326;
+      --inputLine:#2a3b62;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 10% 10%, rgba(122,162,255,.22), transparent 60%),
+                  radial-gradient(900px 500px at 90% 15%, rgba(52,211,153,.12), transparent 55%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      padding: 26px 16px 70px;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(17,28,51,.92), rgba(15,23,42,.92));
+      border: 1px solid var(--line);
+      padding: 26px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    header{ margin-bottom: 18px; }
+
+    .pill{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(11,19,38,.7);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .2px;
+    }
+
+    h1 {
+      margin: 10px 0 6px;
+      font-size: 1.7rem;
+      letter-spacing: .2px;
+    }
+
+    .subtitle{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 70ch;
+      font-size: 0.98rem;
+    }
+
+    .section {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(36,53,86,.7);
+    }
+
+    .section h3{
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      color: #d7e3ff;
+    }
+
+    .grid{
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 720px){
+      .grid.two{ grid-template-columns: 1fr 1fr; }
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+      margin-top: 10px;
+      color: #dfe9ff;
+    }
+
+    .req{ color: var(--warn); }
+
+    select,
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--inputLine);
+      border-radius: 12px;
+      background: rgba(11,19,38,.9);
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+      transition: border-color .15s ease;
+    }
+
+    select:focus,
+    input:focus{
+      border-color: rgba(122,162,255,.9);
+      box-shadow: 0 0 0 4px rgba(122,162,255,.12);
+    }
+
+    select.is-invalid,
+    input.is-invalid {
+      border-color: rgba(251,113,133,.9);
+      box-shadow: 0 0 0 4px rgba(251,113,133,.10);
+    }
+
+    select.is-valid,
+    input.is-valid {
+      border-color: rgba(52,211,153,.9);
+      box-shadow: 0 0 0 4px rgba(52,211,153,.10);
+    }
+
+    .hint {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+
+    .error-message {
+      color: #ff9aa8;
+      font-size: 12.5px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .error-message.visible { display: block; }
+
+    .server-error {
+      background: rgba(251,113,133,.12);
+      border: 1px solid rgba(251,113,133,.6);
+      color: #ffd0d7;
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin: 14px 0 0;
+    }
+
+    .helper-box {
+      background: rgba(11,19,38,.7);
+      border: 1px solid rgba(36,53,86,.7);
+      padding: 12px 12px;
+      border-radius: 12px;
+      margin-top: 10px;
+      display: none;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+
+    .actions{
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    button {
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      color: #071022;
+      border: 0;
+      padding: 14px 14px;
+      width: 100%;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .06s ease, opacity .15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .fineprint{
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.4;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="pill">8 questions • under 2 minutes • $19 report</div>
+      <h1>Seattle ADU Permit Readiness Report</h1>
+      <p class="subtitle">
+        Answer a few quick questions. Your report opens with your biggest concern and gives you a clear next-step checklist.
+      </p>
+
+      {% if error %}
+      <div class="server-error">{{ error }}</div>
+      {% endif %}
+    </header>
+
+    <!-- Keep /evaluate for now; we’ll update backend next -->
+    <form action="/evaluate" method="POST" id="aduForm" novalidate>
+
+      <div class="section">
+        <h3>Delivery</h3>
+        <div class="grid two">
+          <div>
+            <label for="email">Email <span class="req">*</span></label>
+            <input type="email" name="email" id="email" placeholder="you@email.com" required />
+            <div class="error-message" id="email_error">Please enter a valid email.</div>
+          </div>
+
+          <div>
+            <label for="address">Property Address (Optional)</label>
+            <input type="text" name="address" id="address" placeholder="123 Example St, Seattle, WA" />
+            <div class="hint">Optional. Helps you keep reports organized.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Section 1: Your Property</h3>
+
+        <label for="zoning">What’s your Seattle zoning? <span class="req">*</span></label>
+        <select name="zoning" id="zoning" required>
+          <option value="" disabled selected>-- Select --</option>
+          <option value="NR">Neighborhood Residential (NR)</option>
+          <option value="RSL">Residential Small Lot (RSL)</option>
+          <option value="LOWRISE">Lowrise</option>
+          <option value="OTHER">Other / Mixed</option>
+          <option value="IDK">I don’t know</option>
+        </select>
+        <div class="error-message" id="zoning_error">Please select a zoning option.</div>
+
+        <div class="helper-box" id="zoning_helper">
+          <strong style="color:#d7e3ff;">Find your zoning in ~60 seconds:</strong><br><br>
+          1) Open the Seattle Maps portal / property info map<br>
+          2) Search your address<br>
+          3) Look for “Zoning” or “Zoning District”<br>
+          4) Come back and pick the closest match (NR, RSL, Lowrise, Other)<br><br>
+          If you don’t want to dig right now, choose “I don’t know” — we’ll still generate a report with best-practice next steps.
+        </div>
+
+        <label for="lot_size_range">What’s your lot size approximately? <span class="req">*</span></label>
+        <select name="lot_size_range" id="lot_size_range" required>
+          <option value="" disabled selected>-- Select --</option>
+          <option value="UNDER_3200">Under 3,200 sq ft</option>
+          <option value="3200_5000">3,200 to 5,000 sq ft</option>
+          <option value="OVER_5000">Over 5,000 sq ft</option>
+          <option value="UNKNOWN">Not sure</option>
+        </select>
+        <div class="error-message" id="lot_size_range_error">Please select a lot size range.</div>
+        <div class="hint">Ranges are faster — no measuring tape needed.</div>
+
+        <label for="detached_structure">Do you have an existing detached structure (garage/cottage)? <span class="req">*</span></label>
+        <select name="detached_structure" id="detached_structure" required>
+          <option value="" disabled selected>-- Select --</option>
+          <option value="YES">Yes</option>
+          <option value="NO">No</option>
+        </select>
+        <div class="error-message" id="detached_structure_error">Please select an option.</div>
+        <div class="hint">This helps us decide if conversion is a realistic path.</div>
+      </div>
+
+      <div class="section">
+        <h3>Section 2: Your Project</h3>
+
+        <div class="grid two">
+          <div>
+            <label for="adu_type">What type of ADU are you considering? <span class="req">*</span></label>
+            <select name="adu_type" id="adu_type" required>
+              <option value="" disabled selected>-- Select --</option>
+              <option value="ATTACHED">Attached to house</option>
+              <option value="DETACHED_NEW">Detached new build</option>
+              <option value="CONVERT_EXISTING">Convert existing structure</option>
+              <option value="NOT_SURE">Not sure yet</option>
+            </select>
+            <div class="error-message" id="adu_type_error">Please select an ADU type.</div>
+          </div>
+
+          <div>
+            <label for="motivation">What’s driving this? <span class="req">*</span></label>
+            <select name="motivation" id="motivation" required>
+              <option value="" disabled selected>-- Select --</option>
+              <option value="RENTAL_INCOME">Extra rental income</option>
+              <option value="FAMILY_MEMBER">House a family member</option>
+              <option value="PROPERTY_VALUE">Increase property value</option>
+              <option value="ALL">All of the above</option>
+            </select>
+            <div class="error-message" id="motivation_error">Please select a motivation.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Section 3: Your Situation</h3>
+
+        <div class="grid two">
+          <div>
+            <label for="owner_occupied">Do you currently live on the property? <span class="req">*</span></label>
+            <select name="owner_occupied" id="owner_occupied" required>
+              <option value="" disabled selected>-- Select --</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+            <div class="error-message" id="owner_occupied_error">Please select an option.</div>
+          </div>
+
+          <div>
+            <label for="pro_help">Have you talked to an architect or contractor yet? <span class="req">*</span></label>
+            <select name="pro_help" id="pro_help" required>
+              <option value="" disabled selected>-- Select --</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+              <option value="PLANNING">Not yet, but planning to</option>
+            </select>
+            <div class="error-message" id="pro_help_error">Please select an option.</div>
+          </div>
+        </div>
+
+        <label for="biggest_concern">What’s your biggest concern? <span class="req">*</span></label>
+        <select name="biggest_concern" id="biggest_concern" required>
+          <option value="" disabled selected>-- Select --</option>
+          <option value="COST">Cost</option>
+          <option value="ALLOWED">Whether it’s even allowed</option>
+          <option value="TIMELINE">Timeline</option>
+          <option value="WHERE_TO_START">Where to start</option>
+        </select>
+        <div class="error-message" id="biggest_concern_error">Please select a concern.</div>
+        <div class="hint">
+          This becomes the opening line of your report: “Based on your concern about X, here’s what you need to know first.”
+        </div>
+
+        <div class="actions">
+          <button type="submit" id="submitBtn">Pay $19 & Generate My Report</button>
+          <div class="fineprint">
+            Informational report only. Not legal advice. You’ll get practical next steps based on your inputs.
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('aduForm');
+    const submitBtn = document.getElementById('submitBtn');
+    let formSubmitted = false;
+
+    // New field validation
+    const VALID_VALUES = {
+      zoning: ['NR', 'RSL', 'LOWRISE', 'OTHER', 'IDK'],
+      lot_size_range: ['UNDER_3200', '3200_5000', 'OVER_5000', 'UNKNOWN'],
+      detached_structure: ['YES', 'NO'],
+      adu_type: ['ATTACHED', 'DETACHED_NEW', 'CONVERT_EXISTING', 'NOT_SURE'],
+      motivation: ['RENTAL_INCOME', 'FAMILY_MEMBER', 'PROPERTY_VALUE', 'ALL'],
+      owner_occupied: ['YES', 'NO'],
+      pro_help: ['YES', 'NO', 'PLANNING'],
+      biggest_concern: ['COST', 'ALLOWED', 'TIMELINE', 'WHERE_TO_START']
+    };
+
+    function showError(fieldId, show) {
+      const errorEl = document.getElementById(fieldId + '_error');
+      if (errorEl) errorEl.classList.toggle('visible', show);
+    }
+
+    function applyValidationClass(field, isValid) {
+      if (!formSubmitted) return;
+      field.classList.remove('is-valid', 'is-invalid');
+
+      if (field.value !== '' || field.required) {
+        field.classList.add(isValid ? 'is-valid' : 'is-invalid');
+      }
+    }
+
+    function validateEmail(field) {
+      const value = (field.value || '').trim();
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      showError(field.name, formSubmitted && !ok);
+      applyValidationClass(field, ok);
+      return ok;
+    }
+
+    function validateSelect(field) {
+      const value = field.value;
+      const validValues = VALID_VALUES[field.name];
+
+      if (field.required && value === '') {
+        showError(field.name, formSubmitted);
+        applyValidationClass(field, false);
+        return false;
+      }
+
+      if (validValues) {
+        const isValid = validValues.includes(value);
+        showError(field.name, formSubmitted && !isValid);
+        applyValidationClass(field, isValid);
+        return isValid;
+      }
+      return true;
+    }
+
+    function validateForm() {
+      let isValid = true;
+
+      // email required
+      const emailField = document.getElementById('email');
+      if (!validateEmail(emailField)) isValid = false;
+
+      // all selects
+      document.querySelectorAll('select').forEach(select => {
+        if (!validateSelect(select)) isValid = false;
+      });
+
+      return isValid;
+    }
+
+    // Show zoning helper only when "IDK" is selected
+    const zoningEl = document.getElementById('zoning');
+    const zoningHelper = document.getElementById('zoning_helper');
+
+    zoningEl.addEventListener('change', () => {
+      zoningHelper.style.display = (zoningEl.value === 'IDK') ? 'block' : 'none';
+      if (formSubmitted) validateSelect(zoningEl);
+    });
+
+    // Real-time validation after first submit
+    document.querySelectorAll('select').forEach(select => {
+      select.addEventListener('change', () => {
+        if (formSubmitted) validateSelect(select);
+      });
+    });
+
+    document.getElementById('email').addEventListener('input', () => {
+      if (formSubmitted) validateEmail(document.getElementById('email'));
+    });
+
+    // Submission validation
+    form.addEventListener('submit', (e) => {
+      formSubmitted = true;
+      if (!validateForm()) {
+        e.preventDefault();
+        alert('Please correct the errors before submitting.');
+      }
+    });
+  </script>
+</body>
+
+</html>
