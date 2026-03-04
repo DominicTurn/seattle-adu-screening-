@@ -1,0 +1,120 @@
+{
+  "engine": {
+    "version": "0.3",
+    "scoring": { "start": 100 },
+
+    "labels": [
+      { "label": "UNLIKELY", "if": { "any_blocker": true } },
+      { "label": "UNLIKELY", "if": { "score_lt": 40 } },
+      { "label": "POSSIBLE", "if": { "score_lt": 75 } },
+      { "label": "LIKELY", "if": { "score_gte": 75 } }
+    ]
+  },
+
+  "rules": [
+
+    {
+      "id": "INFO_ADU_PERMIT_REQUIRED",
+      "severity": "info",
+      "score_impact": 0,
+      "when": { "always": true },
+      "message": "Seattle requires permits to establish ADUs. This tool provides a preliminary readiness screening only."
+    },
+
+    {
+      "id": "NR_DADU_MIN_LOT",
+      "severity": "blocker",
+      "score_impact": -60,
+      "when": {
+        "all": [
+          { "field": "zoning", "op": "eq", "value": "NR" },
+          { "field": "adu_type", "op": "in", "value": ["DETACHED_NEW", "CONVERT_EXISTING"] },
+          { "field": "lot_size_range", "op": "eq", "value": "UNDER_3200" }
+        ]
+      },
+      "message": "Detached ADUs in Neighborhood Residential zones typically require a minimum lot size of about 3,200 sq ft."
+    },
+
+    {
+      "id": "LOT_UNKNOWN_WARNING",
+      "severity": "warning",
+      "score_impact": -10,
+      "when": {
+        "field": "lot_size_range",
+        "op": "eq",
+        "value": "UNKNOWN"
+      },
+      "message": "Lot size was not provided. Some ADU pathways depend on minimum lot area thresholds."
+    },
+
+    {
+      "id": "CONVERSION_WITHOUT_STRUCTURE",
+      "severity": "warning",
+      "score_impact": -20,
+      "when": {
+        "all": [
+          { "field": "adu_type", "op": "eq", "value": "CONVERT_EXISTING" },
+          { "field": "detached_structure", "op": "eq", "value": "NO" }
+        ]
+      },
+      "message": "You selected converting an existing structure, but indicated no detached structure like a garage or cottage."
+    },
+
+    {
+      "id": "ZONING_UNKNOWN",
+      "severity": "warning",
+      "score_impact": -15,
+      "when": {
+        "field": "zoning",
+        "op": "eq",
+        "value": "IDK"
+      },
+      "message": "Zoning was not confirmed. Seattle ADU rules vary significantly by zoning district."
+    },
+
+    {
+      "id": "ATTACHED_ADU_FLEXIBLE",
+      "severity": "info",
+      "score_impact": 5,
+      "when": {
+        "field": "adu_type",
+        "op": "eq",
+        "value": "ATTACHED"
+      },
+      "message": "Attached ADUs often face fewer lot size constraints compared with detached units."
+    },
+
+    {
+      "id": "SECONDARY_INCOME_MOTIVATION",
+      "severity": "info",
+      "score_impact": 0,
+      "when": {
+        "field": "motivation",
+        "op": "eq",
+        "value": "RENTAL_INCOME"
+      },
+      "message": "Many Seattle homeowners build ADUs for rental income. Check local regulations for rental licensing requirements."
+    },
+
+    {
+      "id": "PRO_HELP_RECOMMENDED",
+      "severity": "info",
+      "score_impact": 0,
+      "when": {
+        "field": "pro_help",
+        "op": "eq",
+        "value": "NO"
+      },
+      "message": "If you have not yet consulted an architect or contractor, doing so early can clarify feasibility and costs."
+    },
+
+    {
+      "id": "OWNER_OCCUPANCY_NOTE",
+      "severity": "info",
+      "score_impact": 0,
+      "when": { "always": true },
+      "message": "Seattle currently does not require owner occupancy for ADU properties, though this can change with policy updates."
+    }
+
+  ]
+}
