@@ -7,22 +7,27 @@ def evaluate_rules(inputs: dict, rules_data: dict) -> dict:
     """
     Main evaluation function.
     Returns structured result used by result.html
-    """
 
+    Output:
+      {
+        "score": int,
+        "decision": str,
+        "reasons": [str, ...],
+        "next_steps": [str, ...]
+      }
+    """
     engine_config = rules_data.get("engine", {})
     rules = rules_data.get("rules", [])
 
     score = engine_config.get("scoring", {}).get("start", 100)
 
-    reasons = []
-    next_steps = []
+    reasons: list[str] = []
+    next_steps_set: set[str] = set()
 
     any_blocker = False
 
     for rule in rules:
-
         try:
-
             if not evaluate_condition(rule.get("when"), inputs):
                 continue
 
@@ -32,11 +37,14 @@ def evaluate_rules(inputs: dict, rules_data: dict) -> dict:
 
             score += impact
 
+            # Option A: store reasons as strings (template prints cleanly)
             if message:
-                reasons.append({
-                    "severity": severity,
-                    "message": message
-                })
+                reasons.append(message)
+
+            # Pull next steps directly from rules JSON (if present)
+            for step in (rule.get("next_steps") or []):
+                if step and isinstance(step, str):
+                    next_steps_set.add(step)
 
             if severity == "blocker":
                 any_blocker = True
@@ -46,19 +54,20 @@ def evaluate_rules(inputs: dict, rules_data: dict) -> dict:
 
     decision = determine_label(score, any_blocker, engine_config)
 
+    # Add dynamic next steps (based on inputs)
+    for step in build_next_steps(inputs):
+        next_steps_set.add(step)
+
     return {
         "score": score,
         "decision": decision,
         "reasons": reasons,
-        "next_steps": build_next_steps(inputs)
+        "next_steps": sorted(next_steps_set)
     }
 
 
 def evaluate_condition(condition: dict, inputs: dict) -> bool:
-    """
-    Recursive rule condition evaluator
-    """
-
+    """Recursive rule condition evaluator."""
     if not condition:
         return False
 
@@ -84,28 +93,29 @@ def evaluate_condition(condition: dict, inputs: dict) -> bool:
         return user_value != value
 
     if op == "in":
-        return user_value in value
+        return user_value in (value or [])
 
     if op == "not_in":
-        return user_value not in value
+        return user_value not in (value or [])
 
     return False
 
 
 def determine_label(score: int, any_blocker: bool, engine_config: dict) -> str:
-    """
-    Determine final readiness label
-    """
-
+    """Determine final readiness label."""
     labels = engine_config.get("labels", [])
 
+    # Blockers override
     for rule in labels:
-
         cond = rule.get("if", {})
-        label = rule.get("label")
-
+        label = rule.get("label", "POSSIBLE")
         if cond.get("any_blocker") and any_blocker:
             return label
+
+    # Then score thresholds
+    for rule in labels:
+        cond = rule.get("if", {})
+        label = rule.get("label", "POSSIBLE")
 
         if "score_lt" in cond and score < cond["score_lt"]:
             return label
@@ -116,41 +126,26 @@ def determine_label(score: int, any_blocker: bool, engine_config: dict) -> str:
     return "POSSIBLE"
 
 
-def build_next_steps(inputs: dict) -> list:
-    """
-    Simple recommendations engine
-    """
-
-    steps = []
+def build_next_steps(inputs: dict) -> list[str]:
+    """Simple recommendations engine based on inputs."""
+    steps: list[str] = []
 
     if inputs.get("zoning") == "IDK":
-        steps.append(
-            "Confirm your zoning using the Seattle GIS zoning map."
-        )
+        steps.append("Confirm your zoning using Seattle’s GIS zoning map.")
 
     if inputs.get("pro_help") == "NO":
-        steps.append(
-            "Consider consulting an architect or ADU designer to verify feasibility."
-        )
+        steps.append("Consider consulting an architect or ADU designer to verify feasibility early.")
 
-    if inputs.get("adu_type") == "DETACHED_NEW":
-        steps.append(
-            "Review Seattle detached ADU setback and lot coverage requirements."
-        )
+    if inputs.get("adu_type") in ("DETACHED_NEW", "CONVERT_EXISTING"):
+        steps.append("Review Seattle detached ADU setback and lot coverage requirements.")
 
     if inputs.get("biggest_concern") == "COST":
-        steps.append(
-            "Typical Seattle ADU construction costs range from $250k to $400k depending on design."
-        )
+        steps.append("Price check: Seattle ADU builds commonly land in the $250k–$400k range depending on scope and site.")
 
     if inputs.get("biggest_concern") == "TIMELINE":
-        steps.append(
-            "Permitting and construction timelines for Seattle ADUs often range from 8 to 14 months."
-        )
+        steps.append("Timeline check: permitting + build is often 8–14 months depending on review path and contractor schedule.")
 
     if inputs.get("biggest_concern") == "WHERE_TO_START":
-        steps.append(
-            "Start by confirming zoning, lot size, and existing structures on your property."
-        )
+        steps.append("Start with: confirm zoning + lot size + whether a conversion structure is viable, then talk to a designer.")
 
     return steps
